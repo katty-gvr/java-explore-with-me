@@ -7,6 +7,7 @@ import ru.practicum.dto.HitDto;
 import ru.practicum.dto.StatDto;
 import ru.practicum.server.mapper.HitMapper;
 import ru.practicum.server.mapper.StatMapper;
+import ru.practicum.server.model.Stat;
 import ru.practicum.server.repository.StatRepository;
 
 import java.time.LocalDateTime;
@@ -28,23 +29,13 @@ public class StatServiceImpl implements StatService {
 
     @Override
     public List<StatDto> getStatistics(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
-        if (uris == null || uris.isEmpty()) {
-            return unique ? statRepository.findAllUniqueStats(start, end).stream().map(StatMapper::toStatDto).collect(Collectors.toList())
-                    : statRepository.findAllStats(start, end).stream().map(StatMapper::toStatDto).collect(Collectors.toList());
-        } else {
-            return unique ? statRepository.findUniqueStat(start, end, uris).stream().map(StatMapper::toStatDto).collect(Collectors.toList())
-                    : statRepository.findStat(start, end, uris).stream().map(StatMapper::toStatDto).collect(Collectors.toList());
-        }
+        List<Stat> stat = (uris == null || uris.isEmpty())
+                ? unique
+                ? statRepository.findAllUniqueStats(start, end)
+                : statRepository.findAllStats(start, end)
+                : unique
+                ? statRepository.findUniqueStat(start, end, uris)
+                : statRepository.findStat(start, end, uris);
+        return stat.stream().map(StatMapper::toStatDto).collect(Collectors.toList());
     }
-
-/*    @Override
-    public List<StatDto> getStatistics(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
-        if (uris == null || uris.isEmpty()) {
-            return unique ? statRepository.findAllUniqueStats(start, end)
-                    : statRepository.findAllStats(start, end);
-        } else {
-            return unique ? statRepository.findUniqueStat(start, end, uris)
-                    : statRepository.findStat(start, end, uris);
-        }
-    }*/
 }
