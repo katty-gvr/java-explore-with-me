@@ -24,7 +24,6 @@ public class StatServiceImpl implements StatService {
     @Transactional
     public void addHit(HitDto hitDto) {
         statRepository.save(HitMapper.toHit(hitDto));
-
     }
 
     @Override
