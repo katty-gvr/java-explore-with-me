@@ -24,18 +24,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+
     @Override
     @Transactional
     public UserDto addUser(UserDto userDto) {
         User userForSave = UserMapper.toUser(userDto);
-        log.info("Зарегистрирован новый пользователь {}", userForSave);
+        log.info("Зарегистрирован новый пользователь {}", userForSave.getEmail());
         return UserMapper.toUserDto(userRepository.save(userForSave));
     }
 
     @Override
     @Transactional
     public void deleteUser(Long id) {
-        userRepository.findById(id).orElseThrow(() -> new NotFoundException("Пользотваль с id = " + id + " не найден"));
+        userRepository.findById(id).orElseThrow(() -> new NotFoundException(String.format("Пользотваль с id=%d не найден", id)));
         log.info("Пользователь с id = {} успешно удален", id);
         userRepository.deleteById(id);
     }
