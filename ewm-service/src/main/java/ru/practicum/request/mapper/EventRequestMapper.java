@@ -21,6 +21,7 @@ public class EventRequestMapper {
                 .status(event.getRequestModeration() ? RequestStatus.PENDING : RequestStatus.CONFIRMED)
                 .build();
     }
+
     public static ParticipationRequestDto toRequestDto(EventRequest request) {
         return ParticipationRequestDto.builder()
                 .created(request.getCreated().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
