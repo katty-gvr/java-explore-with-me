@@ -1,6 +1,7 @@
 package ru.practicum.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.HttpStatus;
@@ -51,8 +52,14 @@ public class ExceptionsHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequestException(final BadRequestException e) {
-        log.info("Conflict error: {}", e.getMessage());
+        log.info("Bad request error: {}", e.getMessage());
         return new ErrorResponse("Ошибка валидации данных: " + e.getMessage(), HttpStatus.BAD_REQUEST.getReasonPhrase());
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse hadleDataIntegrityViolationException(final DataIntegrityViolationException e) {
+        log.info("Data integrity violation error: {}", e.getMessage());
+        return new ErrorResponse(e.getMessage(), HttpStatus.CONFLICT.getReasonPhrase());
+    }
 }
