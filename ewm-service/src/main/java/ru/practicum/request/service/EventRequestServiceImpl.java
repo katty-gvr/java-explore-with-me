@@ -85,7 +85,7 @@ public class EventRequestServiceImpl implements EventRequestService {
 
     private User getRequester(Long userId) {
         return userRepository.findById(userId).orElseThrow(() ->
-                new NotFoundException(String.format("Пользотваль с id=%d не найден", userId)));
+                new NotFoundException(String.format("Пользователь с id=%d не найден", userId)));
     }
 
     private Event getEvent(Long eventId) {

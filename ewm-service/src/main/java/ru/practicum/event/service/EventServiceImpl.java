@@ -46,6 +46,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 import static ru.practicum.enumerations.RequestStatus.CONFIRMED;
 
 @Service
@@ -54,7 +56,7 @@ import static ru.practicum.enumerations.RequestStatus.CONFIRMED;
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
     @Value("${app-name}")
-    private String nameOfService; //todo изменить имя
+    private String nameOfService;
     private final EventRepository eventRepository;
     private final LocationRepository locationRepository;
     private final UserRepository userRepository;
@@ -257,8 +259,15 @@ public class EventServiceImpl implements EventService {
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
 
-        for (Event event : eventRepository.findAll(specification, pageable)) {
-            loadConfirmedRequests(event);
+        List<Event> events = eventRepository.findAll(specification, pageable);
+
+        Map<Event, Long> confirmedRequests = getConfirmedRequestsForEventList(events); // выгрузили подтвержденные запросы событий
+        List<StatDto> eventsStatistic = getStatisticForEventList(events); // выгрузили статистику событий
+        Map<String, Long> eventViews = loadViewsToEventList(eventsStatistic); // выгрузили просмотры
+
+        for (Event event : events) {
+            event.setConfirmedRequests(confirmedRequests.get(event));
+            event.setViews(eventViews.get(String.format("/events/%s", event.getId())));
             foundEventDtoList.add(EventMapper.toEventFullDto(event));
         }
 
@@ -270,14 +279,14 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventDto getPublicEventById(Long eventId, String url, String ip) {
         Event event = getEventById(eventId);
-        addNewHit(url, ip);
+        StatDto statDto = addNewHit(url, ip);
 
         if (event.getState() != EventState.PUBLISHED) {
             throw new NotFoundException(String.format("Событие с id = %d не найдено среди опубликованных", eventId));
         }
 
         loadConfirmedRequests(event);
-        event.setViews(Objects.requireNonNull(getEventStatistic(event)).getHits());
+        event.setViews(Objects.requireNonNullElseGet(statDto, () -> Objects.requireNonNull(getEventStatistic(event))).getHits());
 
         log.info("Выполнен запрос к событию {}, url {}, ip {}", event, url, ip);
         return EventMapper.toEventFullDto(event);
@@ -340,8 +349,10 @@ public class EventServiceImpl implements EventService {
         });
 
         List<Event> foundEvents = eventRepository.findAll(specification, pageable);
+        Map<Event, Long> confirmedRequests = getConfirmedRequestsForEventList(foundEvents);
+
         for (Event event : foundEvents) {
-            loadConfirmedRequests(event);
+            event.setConfirmedRequests(confirmedRequests.get(event));
         }
 
         List<StatDto> eventsStatistic = getStatisticForEventList(foundEvents);
@@ -353,8 +364,6 @@ public class EventServiceImpl implements EventService {
 
         return EventMapper.toEventDtoListWithViews(foundEvents, eventViews);
     }
-
-
 
     @Override
     public Collection<ParticipationRequestDto> getRequestsByUserAndEvent(Long userId, Long eventId) {
@@ -405,8 +414,10 @@ public class EventServiceImpl implements EventService {
         for (EventRequest request : requestsToUpdate) {
             request.setStatus(statusUpdateRequest.getStatus());
             if (statusUpdateRequest.getStatus().equals(CONFIRMED)) {
+                log.info("Пользователь с id {} подтвердил запрос с id {} на участие в событии с id {}", userId, request.getId(), eventId);
                 confirmedRequests.add(EventRequestMapper.toRequestDto(request));
             } else if (statusUpdateRequest.getStatus().equals(RequestStatus.REJECTED)) {
+                log.info("Пользователь с id {} отклонил запрос с id {} на участие в событии с id {}", userId, request.getId(), eventId);
                 rejectedRequests.add(EventRequestMapper.toRequestDto(request));
             }
         }
@@ -416,6 +427,12 @@ public class EventServiceImpl implements EventService {
                 .confirmedRequests(confirmedRequests)
                 .rejectedRequests(rejectedRequests)
                 .build();
+    }
+
+    private Map<Event, Long> getConfirmedRequestsForEventList(List<Event> events) {
+        return requestRepository.findAllByEventInAndStatus(events, RequestStatus.CONFIRMED)
+                .stream()
+                .collect(groupingBy(EventRequest::getEvent, counting()));
     }
 
     private StatDto getEventStatistic(Event event) {
@@ -474,7 +491,7 @@ public class EventServiceImpl implements EventService {
 
     private User getUserById(Long userId) {
         return userRepository.findById(userId).orElseThrow(() ->
-                new NotFoundException(String.format("Пользотваль с id=%d не найден", userId)));
+                new NotFoundException(String.format("Пользователь с id=%d не найден", userId)));
     }
 
     private Event getEventById(Long eventId) {
@@ -493,13 +510,13 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private void addNewHit(String url, String ip) {
+    private StatDto addNewHit(String url, String ip) {
         HitDto newHitDto = HitDto.builder()
-                            .app(nameOfService)
-                            .uri(url)
-                            .ip(ip)
-                            .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                            .build();
-        statClient.saveHit(newHitDto);
+                .app(nameOfService)
+                .uri(url)
+                .ip(ip)
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .build();
+        return statClient.saveHit(newHitDto);
     }
 }

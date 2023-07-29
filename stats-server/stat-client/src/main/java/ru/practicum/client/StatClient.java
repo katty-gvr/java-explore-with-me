@@ -39,21 +39,6 @@ public class StatClient extends BaseClient {
         return gson.fromJson(json, StatDto.class);
     }
 
-/*    public List<StatDto> getStatistics(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
-        Gson gson = new Gson();
-        String urisString = String.join(",", uris);
-        Map<String, Object> parameters = Map.of(
-                "start", start.format(DATE_TIME_FORMAT),
-                "end", end.format(DATE_TIME_FORMAT),
-                "uris", urisString,
-                "unique", unique
-        );
-        String path = "stats?start={start}&end={end}&uris={uris}&unique={unique}";
-        ResponseEntity<Object> responseEntity = get(path, parameters);
-        String json = gson.toJson(responseEntity.getBody());
-        return gson.fromJson(json, StatDto.class);
-    }*/
-
     public List<StatDto> getStatistics(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
         Gson gson = new Gson();
         String urisString = String.join(",", uris);

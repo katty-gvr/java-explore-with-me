@@ -44,7 +44,7 @@ public class EventMapper {
         return EventDto.builder()
                 .annotation(event.getAnnotation())
                 .category(CategoryMapper.toCategoryDto(event.getCategory()))
-                .confirmedRequests(event.getConfirmedRequests() != null ? event.getConfirmedRequests() : null)
+                .confirmedRequests(event.getConfirmedRequests() != null ? event.getConfirmedRequests() : 0)
                 .createdOn(event.getCreatedOn())
                 .description(event.getDescription())
                 .eventDate(event.getEventDate())
