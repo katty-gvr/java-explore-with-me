@@ -22,7 +22,7 @@
             <groupId>ru.practicum</groupId>
             <artifactId>stat-dto</artifactId>
             <version>0.0.1-SNAPSHOT</version>
-            <!--<scope>compile</scope> значение по умолчанию?-->
+            <scope>compile</scope>
         </dependency>
 
         <dependency>
@@ -30,14 +30,14 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-<!--        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-        </dependency>-->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.14</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
         </dependency>
     </dependencies>
 
