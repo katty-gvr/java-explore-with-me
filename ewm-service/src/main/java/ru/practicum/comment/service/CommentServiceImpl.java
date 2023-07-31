@@ -132,8 +132,4 @@ public class CommentServiceImpl implements CommentService {
         return commentRepository.findById(commentId).orElseThrow(() ->
                 new NotFoundException(String.format("Комментарий с id=%d не найден", commentId)));
     }
-
-
-
-
 }
