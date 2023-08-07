@@ -70,4 +70,7 @@ public class Event {
 
     @Transient
     private Long views = 0L;
+
+    @Transient
+    private Long comments;
 }

@@ -27,4 +27,5 @@ public class EventDto {
     private EventState state;
     private String title;
     private Long views;
+    private Long comments;
 }
